@@ -15,7 +15,9 @@ export class SelectedColorInput extends Component {
       backgroundColor: selectedColor
     }
 
-    return <div className="selected-color">
+    return <div
+        className="selected-color"
+        onClick={this.props.onClick}>
         <span
           className={colorInputClass}
           title={selectedColor}
@@ -27,38 +29,11 @@ export class SelectedColorInput extends Component {
   }
 }
 
-export class ColorNode extends Component {
-  render() {
-    let {color} = this.props
-    let nodeStyle = {
-      backgroundColor: color
-    }
-
-    return <span
-      className="color"
-      title={color}
-      style={nodeStyle}
-      data-color={color}
-      tabIndex="0"
-      role="button">
-    </span>
-  }
-}
-
-export class ColorList extends Component {
-  render() {
-    let colorNodes = []
-    Array.prototype.forEach.call(this.props.data, function(el, i) {
-      colorNodes.push(<ColorNode color={el} key={i}/>)
-    })
-
-    return <div>
-      {colorNodes}
-    </div>
-  }
-}
-
 export class ColorDrawer extends Component {
+  _onClick(color) {
+    this.props.onColorClick(color)
+  }
+
   render() {
     let {mainClass, selectedColor, colors} = this.props
     let colorDrawerClass = classNames(mainClass, {
@@ -73,12 +48,29 @@ export class ColorDrawer extends Component {
     return <span
       className={colorDrawerClass}
       style={colorDrawerStyle}>
-    <ColorList data={colors}/>
+      <div>
+        {
+          colors.map(function(color, i) {
+            return (
+              <span
+                className="color"
+                title={color}
+                style={{backgroundColor: color}}
+                tabIndex="0"
+                role="button"
+                key={i}
+                onClick={this._onClick.bind(this, color)}>
+              </span>
+            )
+          }, this)
+        }
+      </div>
     </span>
   }
 }
 
 export class SimpleColorPicker extends Component {
+
   static propTypes = {
     colors: PropTypes.array.isRequired,
     mainClass: PropTypes.string,
@@ -87,7 +79,7 @@ export class SimpleColorPicker extends Component {
 
   static defaultProps = {
     colors: [
-      '#fff',
+      '#ffffff',
       '#ac725e',
       '#d06b64',
       '#f83a22',
@@ -120,18 +112,47 @@ export class SimpleColorPicker extends Component {
 
   constructor(props, context) {
     super(props, context)
+
+    this.state = {
+      displayDrawer: false,
+      selectedColor: this.props.selectedColor
+    }
+  }
+
+  _displayDrawer() {
+    this.setState({displayDrawer: !this.state.displayDrawer})
+  }
+
+  _selectColor(color) {
+    this.setState({
+      selectedColor: color,
+      displayDrawer: false
+    })
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    return (
+      nextProps.todo !== this.props.todo ||
+      nextState !== this.state
+    )
   }
 
   render() {
-    let {mainClass, selectedColor, colors} = this.props
+    let {mainClass, colors} = this.props
+    let {selectedColor} = this.state
 
     return <div className="simplecolorpicker-wrapper">
       <SelectedColorInput
         mainClass={mainClass}
-        selectedColor={selectedColor}/>
-      <ColorDrawer
-        mainClass={mainClass}
-        colors={colors}/>
+        selectedColor={selectedColor}
+        onClick={this._displayDrawer.bind(this)}/>
+      {
+        this.state.displayDrawer &&
+        <ColorDrawer
+          mainClass={mainClass}
+          colors={colors}
+          onColorClick={this._selectColor.bind(this)}/>
+      }
     </div>
   }
 }

@@ -2,6 +2,10 @@
   position: relative;
 }
 
+.selected-color {
+    width: 18px;
+}
+
 .simplecolorpicker.picker {
   position: absolute;
   top: 5px;
